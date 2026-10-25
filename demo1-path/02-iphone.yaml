@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iphone-deploy
+  namespace: app1-ns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: iphone
+  template:
+    metadata:
+      labels:
+        app: iphone
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone 
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: iphone
+      containers:
+      - name: iphone-container
+        image: python:alpine
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            mkdir -p /iphone && echo '<html>
+              <head><title>iPhone Users</title></head>
+              <body>
+                <h1>iPhone Users</h1>
+                <p>Welcome to Cloud With VarJosh</p>
+              </body>
+            </html>' > /iphone/index.html && cd / && python3 -m http.server 5678
+        ports:
+        - containerPort: 5678
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: iphone-svc
+  namespace: app1-ns
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: /iphone/index.html
+spec:
+  selector:
+    app: iphone
+  ports:
+  - name: iphone-port
+    port:  80
+    targetPort: 5678
+    protocol: TCP

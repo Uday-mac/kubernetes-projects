@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-path
+  namespace: app1-ns
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: ingress-demo-2
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:821643762246:certificate/d49e7a54-5f0c-45ae-b93f-75d69d306fd3
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/success-codes: '200'
+
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+        - path: /iphone
+          pathType: Prefix
+          backend:
+            service:
+              name: iphone-svc
+              port:
+                number: 80
+        - path: /android
+          pathType: Prefix
+          backend:
+            service:
+              name: android-svc
+              port:
+                number: 80
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: desktop-svc
+              port:
+                number: 80 
